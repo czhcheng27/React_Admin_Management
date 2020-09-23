@@ -1,13 +1,21 @@
 import React, { Component } from 'react'
-import { Form, Button, Input} from 'antd'
+import { Form, Button, Input, message} from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
 import './login.less'
+import {reqLogin} from '../../api/index'
 
 export default class Login extends Component {
 
-    onFinish = (values) => {
+    onFinish = async(values) => {
         console.log('Received values of form: ', values);
+        const result = await reqLogin(values)
+        if(result.code===0){
+            message.success('request success');
+            this.props.history.replace('/')
+        }else{
+            message.error('request failed');
+        }
       };
 
       validatorPwd = (rule, value) => {
