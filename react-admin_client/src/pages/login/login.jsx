@@ -1,9 +1,12 @@
 import React, { Component } from 'react'
 import { Form, Button, Input, message} from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { Redirect } from 'react-router-dom';
 
 import './login.less'
 import {reqLogin} from '../../api/index'
+import memoryUtlis from '../../utils/memoryUtlis'
+import storageUtlis from '../../utils/storageUtlis'
 
 export default class Login extends Component {
 
@@ -11,6 +14,11 @@ export default class Login extends Component {
         console.log('Received values of form: ', values);
         const result = await reqLogin(values)
         if(result.code===0){
+            //save user to memory
+            const user = result.data
+            memoryUtlis.user = user
+            //also need to save user to local
+            storageUtlis.saveUser(user)
             message.success('request success');
             this.props.history.replace('/')
         }else{
@@ -36,6 +44,11 @@ export default class Login extends Component {
       }
 
     render() {
+
+        const user = memoryUtlis.user
+        if(user && user._id){
+            return <Redirect to='/' />
+        }
         return (
             <div className='login'>
 
