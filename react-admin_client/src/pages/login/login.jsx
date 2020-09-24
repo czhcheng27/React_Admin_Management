@@ -53,7 +53,7 @@ export default class Login extends Component {
             <div className='login'>
 
                 <header className='login-header'>
-                    <img src={require(`./images/logo.png`)} alt='logo' />
+                    <img src={require(`../../assets/images/logo.png`)} alt='logo' />
                     <h1>React Project: Admin Management System</h1>
                 </header>
 
