@@ -8,7 +8,7 @@ import {
 
 const menuList = [
     {
-        title: 'home', 
+        title: 'Home', 
         key: '/home', // aka path
         icon: <PieChartOutlined />, // 
     },
