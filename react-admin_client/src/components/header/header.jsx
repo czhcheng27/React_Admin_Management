@@ -1,9 +1,13 @@
 import React, {Component} from 'react' 
 import {withRouter} from 'react-router-dom'
+import { Modal } from 'antd';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 
 import {getDate} from '../../utils/dateUtlis'
 import menuList from '../../config/menuConfig'
 import './index.less'
+import memoryUtils from '../../utils/memoryUtlis'
+import storageUtlis from '../../utils/storageUtlis'
 
 class Header extends Component { 
 
@@ -27,11 +31,32 @@ class Header extends Component {
         return title
     }
 
+    logout = () => {
+        Modal.confirm({
+            title: 'Do you Want to log out?',
+            icon: <ExclamationCircleOutlined />,
+            onOk: () => {
+              console.log('OK');
+              //clear user 
+              memoryUtils.user = {}
+              storageUtlis.removeUser()
+              this.props.history.replace('/login')
+            },
+            onCancel() {
+              console.log('Cancel');
+            },
+          })
+    }
+
     componentDidMount(){
-        setInterval(()=>{
+        this.setIntervalId = setInterval(()=>{
             const currentTime = getDate(Date.now())
             this.setState({currentTime})
         }, 1000)
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.setIntervalId)
     }
 
     render () { 
@@ -43,7 +68,7 @@ class Header extends Component {
             <div className='header'>
                 <div className='header-top'>
                     <span>Welcome, admin</span>
-                    <a href='javascript:'>Log Out</a>
+                    <a href='#' onClick={this.logout}>Log Out</a>
                 </div>
                 <div className='header-bottom'>
                     <div className='header-bottom-left'>{title}</div>

@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
 const UserModel = mongoose.model('users', userSchema)
 
 //Initial default user Admin => username: admin, password: admin
-UserModel.findOne({username: 'admin', password: 'admin'}).then(user => {
+UserModel.findOne({username: 'admin', password: md5('admin')}).then(user => {
     if(!user){
         UserModel.create({username: 'admin', password: md5('admin')}).then(user => {
             console.log('Initial default user Admin => username: admin, password: admin');
@@ -49,3 +49,15 @@ const RoleModel = mongoose.model('roles', roleSchema)
 
 //export model
 exports.RoleModel = RoleModel
+
+
+
+//define Category Model
+const categorySchema = new mongoose.Schema({
+    name: {type: String, required: true},
+    parentId: {type: String, required: true, default: '0'}
+})
+//define Model
+const CategoryModel = mongoose.model('categories', categorySchema)
+//export model
+exports.CategoryModel = CategoryModel

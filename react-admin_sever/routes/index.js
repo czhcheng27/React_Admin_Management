@@ -1,6 +1,6 @@
 const md5 = require('blueimp-md5');
 var express = require('express');
-const { UserModel, RoleModel } = require('../db/model');
+const { UserModel, RoleModel, CategoryModel } = require('../db/model');
 var router = express.Router();
 
 /* GET home page. */
@@ -27,6 +27,30 @@ router.post('/login', function (req, res){
       }
     }else{
       res.send({code:1, msg:'username and password doesn\'t match'})
+    }
+  })
+})
+
+//add category
+router.post('/manage/category/add', function (req, res){
+  const {parentId, categoryName}  = req.body
+  CategoryModel.create({parentId: parentId, name: categoryName || '0'}, function (err, doc){
+    if(!err){
+      res.send({code:0, data:doc})
+    }else{
+      res.send({code:1, msg:'Error, please try again'})
+    }
+  })
+})
+
+//get category list
+router.get('/manage/category/list', function (req, res){
+  const {parentId} = req.query
+  CategoryModel.find({parentId}, function (err, doc){
+    if(!err){
+      res.send({code:0, data: doc})
+    }else{
+      res.send({code:1, msg:'Error, please try again'})
     }
   })
 })
