@@ -68,7 +68,7 @@ class Header extends Component {
             <div className='header'>
                 <div className='header-top'>
                     <span>Welcome, admin</span>
-                    <a href='#' onClick={this.logout}>Log Out</a>
+                    <a href='#x' onClick={this.logout}>Log Out</a>
                 </div>
                 <div className='header-bottom'>
                     <div className='header-bottom-left'>{title}</div>
