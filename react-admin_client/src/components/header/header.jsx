@@ -8,6 +8,7 @@ import menuList from '../../config/menuConfig'
 import './index.less'
 import memoryUtils from '../../utils/memoryUtlis'
 import storageUtlis from '../../utils/storageUtlis'
+import LinkButton from '../link-button'
 
 class Header extends Component { 
 
@@ -68,7 +69,7 @@ class Header extends Component {
             <div className='header'>
                 <div className='header-top'>
                     <span>Welcome, admin</span>
-                    <a href='#x' onClick={this.logout}>Log Out</a>
+                    <LinkButton onClick={this.logout}>Log Out</LinkButton>
                 </div>
                 <div className='header-bottom'>
                     <div className='header-bottom-left'>{title}</div>
