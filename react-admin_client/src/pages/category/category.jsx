@@ -14,20 +14,21 @@ export default class Category extends Component {
 
     state = {
         loading: false,
-        parentId: 0,
+        parentId: '0',
         parentName: '',
         categories: [],
         subCategories: [],
         showStatus: 0, //0: don't show up; 1: add form; 2: update form
     }
 
-    getCategoryList = async () => {
-        const { parentId } = this.state
+    //get 1st&2nd level list
+    getCategoryList = async (parentId) => {
+        parentId = parentId || this.state.parentId
         this.setState({ loading: true })
         const result = await reqCategoryList(parentId)
         this.setState({ loading: false })
         if (result.code === 0) {
-            if (parentId === 0) {
+            if (parentId === '0') {
                 this.setState({ categories: result.data })
             } else {
                 this.setState({ subCategories: result.data })
@@ -49,7 +50,7 @@ export default class Category extends Component {
                     <span>
                         <LinkButton onClick={()=>{this.showUpdate(category)}} >Modify</LinkButton>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         {
-                            this.state.parentId === 0 ? <LinkButton onClick={() => { this.showSubCategory(category) }}>Check SubCategory</LinkButton> : null
+                            this.state.parentId === '0' ? <LinkButton onClick={() => { this.showSubCategory(category) }}>Check SubCategory</LinkButton> : null
                         }
                     </span>
                 ),
@@ -70,7 +71,7 @@ export default class Category extends Component {
     //click go back to get first level list
     showFirstLevel = () => {
         this.setState({
-            parentId: 0,
+            parentId: '0',
             parentName: '',
             subCategories: []
         })
@@ -81,6 +82,26 @@ export default class Category extends Component {
         setTimeout(()=>{
             this.formRef.current.setFieldsValue({parentId: parentId});
         },100)
+    }
+
+    //add category function
+    addCategory = async() => {
+        //hide modal
+        this.setState({showStatus:0})
+
+        //collect data and send add request
+        const {parentId, categoryName} = this.formRef.current.getFieldValue()
+        this.formRef.current.resetFields();
+        const result = await reqAddCategory(parentId, categoryName)
+        if(result.code===0){
+            //if the category you want to add is under your current category
+            if(parentId===this.state.parentId){
+                //get CURRENT list again
+                this.getCategoryList()
+            }else if(parentId==='0'){//add 1st level category when you are under 2nd level list, need to get 1st level list but don't need to show
+                this.getCategoryList('0')
+            }
+        }
     }
 
     //show update modal
@@ -122,17 +143,17 @@ export default class Category extends Component {
         this.initColumns()
         this.getCategoryList()
     }
+
     render() {
 
         const { categories, loading, parentId, parentName, subCategories, showStatus } = this.state
 
         // const category = this.category || {}
         // console.log('name', category.name);
-        console.log('parentName', parentName);
+        // console.log('parentName', parentName);
         // console.log('categories', categories);
-        console.log('parentId', parentId);
 
-        const title = parentId === 0 ? "First Level List" : (
+        const title = parentId === '0' ? "First Level List" : (
             <span>
                 <LinkButton onClick={this.showFirstLevel}>First Level List</LinkButton>
                 <ArrowRightOutlined style={{ margin: 5 }} />
@@ -147,7 +168,7 @@ export default class Category extends Component {
                     bordered={false}
                     extra={<Button type='primary' onClick={()=>{this.showAdd(parentId)}}><PlusOutlined />Add</Button>} >
                     <Table
-                        dataSource={parentId === 0 ? categories : subCategories}
+                        dataSource={parentId === '0' ? categories : subCategories}
                         columns={this.columns}
                         bordered
                         rowKey='_id'
@@ -165,9 +186,9 @@ export default class Category extends Component {
                     <Form  ref={this.formRef}>
                         <Item name='parentId' initialValue={parentId}>
                         <Select>
-                            <Option value={0}>First Level Category</Option>
+                            <Option value={'0'}>First Level Category</Option>
                             {
-                                categories.map(c => <Option value={c._id}>{c.name}</Option>)
+                                categories.map(c => <Option key={c._id} value={c._id}>{c.name}</Option>)
                             }
                         </Select>
                         </Item>
