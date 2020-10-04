@@ -13,3 +13,6 @@ export const reqAddCategory = (parentId, categoryName) => ajax('/manage/category
 
 //get category list
 export const reqCategoryList = (parentId) => ajax('/manage/category/list', {parentId})
+
+//update category name
+export const reqUpdateCategory = (categoryId, categoryName) => ajax('/manage/category/update', {categoryId, categoryName}, 'POST')

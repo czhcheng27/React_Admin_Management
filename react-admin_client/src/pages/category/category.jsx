@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Button, Card, Table, message, Modal, Form, Select, Input } from 'antd'
 import { PlusOutlined, ArrowRightOutlined } from '@ant-design/icons';
 
-import { reqCategoryList } from '../../api/index'
+import { reqCategoryList, reqUpdateCategory, reqAddCategory } from '../../api/index'
 import LinkButton from '../../components/link-button';
 
 const Item = Form.Item
@@ -76,8 +76,11 @@ export default class Category extends Component {
         })
     }
 
-    showAdd = () => {
+    showAdd = (parentId) => {
         this.setState({showStatus:1})
+        setTimeout(()=>{
+            this.formRef.current.setFieldsValue({parentId: parentId});
+        },100)
     }
 
     //show update modal
@@ -91,7 +94,27 @@ export default class Category extends Component {
         },100)
     }
 
+    //update
+    updateCategory = async() => {
+        //hide modal
+        this.setState({showStatus:0})
+
+        //get parameter
+        const categoryId = this.category._id
+        const categoryName = this.formRef.current.getFieldValue('categoryName')
+
+        //send request to update
+        const result = await reqUpdateCategory(categoryId, categoryName)
+        if(result.code===0){
+            //show list again
+            this.getCategoryList()
+        }
+
+        
+    }
+
     handleCancel = () => {
+        this.formRef.current.resetFields();
         this.setState({showStatus: 0})
     }
 
@@ -103,8 +126,11 @@ export default class Category extends Component {
 
         const { categories, loading, parentId, parentName, subCategories, showStatus } = this.state
 
-        const category = this.category || {}
-        console.log('name', category.name);
+        // const category = this.category || {}
+        // console.log('name', category.name);
+        console.log('parentName', parentName);
+        // console.log('categories', categories);
+        console.log('parentId', parentId);
 
         const title = parentId === 0 ? "First Level List" : (
             <span>
@@ -119,7 +145,7 @@ export default class Category extends Component {
                 <Card
                     title={title}
                     bordered={false}
-                    extra={<Button type='primary' onClick={this.showAdd}><PlusOutlined />Add</Button>} >
+                    extra={<Button type='primary' onClick={()=>{this.showAdd(parentId)}}><PlusOutlined />Add</Button>} >
                     <Table
                         dataSource={parentId === 0 ? categories : subCategories}
                         columns={this.columns}
@@ -136,12 +162,13 @@ export default class Category extends Component {
                     onOk={this.addCategory}
                     onCancel={this.handleCancel}
                 >
-                    <Form initialValues={{parentId:'0'}}>
-                        <Item name='parentId'>
+                    <Form  ref={this.formRef}>
+                        <Item name='parentId' initialValue={parentId}>
                         <Select>
-                            <Option value='0'>First Level Category</Option>
-                            <Option value='1'>Computer</Option>
-                            <Option value='2'>Keyboard</Option>
+                            <Option value={0}>First Level Category</Option>
+                            {
+                                categories.map(c => <Option value={c._id}>{c.name}</Option>)
+                            }
                         </Select>
                         </Item>
 
