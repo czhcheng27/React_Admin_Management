@@ -48,7 +48,7 @@ export default class Category extends Component {
                 width: 300,
                 render: (category) => (
                     <span>
-                        <LinkButton onClick={()=>{this.showUpdate(category)}} >Modify</LinkButton>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <LinkButton onClick={() => { this.showUpdate(category) }} >Modify</LinkButton>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         {
                             this.state.parentId === '0' ? <LinkButton onClick={() => { this.showSubCategory(category) }}>Check SubCategory</LinkButton> : null
                         }
@@ -78,30 +78,40 @@ export default class Category extends Component {
     }
 
     showAdd = (parentId) => {
-        this.setState({showStatus:1})
-        setTimeout(()=>{
-            this.formRef.current.setFieldsValue({parentId: parentId});
-        },100)
+        this.setState({ showStatus: 1 })
+        setTimeout(() => {
+            this.formRef.current.setFieldsValue({ parentId: parentId });
+        }, 100)
     }
 
     //add category function
-    addCategory = async() => {
-        //hide modal
-        this.setState({showStatus:0})
+    addCategory = () => {
 
-        //collect data and send add request
-        const {parentId, categoryName} = this.formRef.current.getFieldValue()
-        this.formRef.current.resetFields();
-        const result = await reqAddCategory(parentId, categoryName)
-        if(result.code===0){
-            //if the category you want to add is under your current category
-            if(parentId===this.state.parentId){
-                //get CURRENT list again
-                this.getCategoryList()
-            }else if(parentId==='0'){//add 1st level category when you are under 2nd level list, need to get 1st level list but don't need to show
-                this.getCategoryList('0')
-            }
-        }
+        //form validate
+        this.formRef.current.validateFields()
+            .then(async (values) => {
+                //hide modal
+                this.setState({ showStatus: 0 })
+
+                //collect data and send add request
+                const { parentId, categoryName } = this.formRef.current.getFieldValue()
+                this.formRef.current.resetFields();
+                const result = await reqAddCategory(parentId, categoryName)
+                if (result.code === 0) {
+                    //if the category you want to add is under your current category
+                    if (parentId === this.state.parentId) {
+                        //get CURRENT list again
+                        this.getCategoryList()
+                    } else if (parentId === '0') {//add 1st level category when you are under 2nd level list, need to get 1st level list but don't need to show
+                        this.getCategoryList('0')
+                    }
+                }
+            })
+
+            .catch(errorInfo => {
+                message.error('Please try to type your category name again')
+            })
+
     }
 
     //show update modal
@@ -109,34 +119,47 @@ export default class Category extends Component {
         //save category
         this.category = category
         // console.log('category',category);
-        this.setState({showStatus: 2})
-        setTimeout(()=>{
-            this.formRef.current.setFieldsValue({categoryName: this.category.name});
-        },100)
+        this.setState({ showStatus: 2 })
+        setTimeout(() => {
+            this.formRef.current.setFieldsValue({ categoryName: this.category.name });
+        }, 100)
     }
 
     //update
-    updateCategory = async() => {
-        //hide modal
-        this.setState({showStatus:0})
+    updateCategory = () => {
 
-        //get parameter
-        const categoryId = this.category._id
-        const categoryName = this.formRef.current.getFieldValue('categoryName')
+        //form validate
+        this.formRef.current.validateFields()
+            .then(async (values) => {
 
-        //send request to update
-        const result = await reqUpdateCategory(categoryId, categoryName)
-        if(result.code===0){
-            //show list again
-            this.getCategoryList()
-        }
+                //hide modal
+                this.setState({ showStatus: 0 })
 
-        
+                //get parameter
+                const categoryId = this.category._id
+                // const categoryName = this.formRef.current.getFieldValue('categoryName')
+                const { categoryName } = values
+
+                //send request to update
+                const result = await reqUpdateCategory(categoryId, categoryName)
+                if (result.code === 0) {
+                    //show list again
+                    this.getCategoryList()
+                }
+
+            })
+
+            .catch(errorInfo => {
+                message.error('Please try to type your category name again')
+            })
+
+
+
     }
 
     handleCancel = () => {
         this.formRef.current.resetFields();
-        this.setState({showStatus: 0})
+        this.setState({ showStatus: 0 })
     }
 
     componentWillMount() {
@@ -166,7 +189,7 @@ export default class Category extends Component {
                 <Card
                     title={title}
                     bordered={false}
-                    extra={<Button type='primary' onClick={()=>{this.showAdd(parentId)}}><PlusOutlined />Add</Button>} >
+                    extra={<Button type='primary' onClick={() => { this.showAdd(parentId) }}><PlusOutlined />Add</Button>} >
                     <Table
                         dataSource={parentId === '0' ? categories : subCategories}
                         columns={this.columns}
@@ -179,21 +202,27 @@ export default class Category extends Component {
 
                 <Modal
                     title="Add Category"
-                    visible={showStatus===1?true:false}
+                    visible={showStatus === 1 ? true : false}
                     onOk={this.addCategory}
                     onCancel={this.handleCancel}
                 >
-                    <Form  ref={this.formRef}>
+                    <Form ref={this.formRef}>
                         <Item name='parentId' initialValue={parentId}>
-                        <Select>
-                            <Option value={'0'}>First Level Category</Option>
-                            {
-                                categories.map(c => <Option key={c._id} value={c._id}>{c.name}</Option>)
-                            }
-                        </Select>
+                            <Select>
+                                <Option value={'0'}>First Level Category</Option>
+                                {
+                                    categories.map(c => <Option key={c._id} value={c._id}>{c.name}</Option>)
+                                }
+                            </Select>
                         </Item>
 
-                        <Item name='categoryName'>
+                        <Item
+                            name='categoryName'
+                            rules={[
+                                { required: true, message: "Please type your category name" },
+                                { pattern: /^[a-zA-Z0-9_]+$/, message: 'Category name can\'t begine with space' }
+                            ]}
+                        >
                             <Input placeholder="Please type in category name" />
                         </Item>
                     </Form>
@@ -201,12 +230,18 @@ export default class Category extends Component {
 
                 <Modal
                     title="Update Category"
-                    visible={showStatus===2?true:false}
+                    visible={showStatus === 2 ? true : false}
                     onOk={this.updateCategory}
                     onCancel={this.handleCancel}
                 >
                     <Form ref={this.formRef}>
-                        <Item name='categoryName'>
+                        <Item
+                            name='categoryName'
+                            rules={[
+                                { required: true, message: "Please type your category name" },
+                                { pattern: /^[a-zA-Z0-9_]+$/, message: 'Category name can\'t begine with space' }
+                            ]}
+                        >
                             <Input placeholder="Please type in category name" />
                         </Item>
                     </Form>
