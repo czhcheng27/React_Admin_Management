@@ -1,59 +1,18 @@
 import React, { Component } from 'react'
-import { Select, Card, Button, Table, Input } from 'antd'
+import { Select, Card, Button, Table, Input, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons';
 import LinkButton from '../../components/link-button';
+import { reqProductList } from '../../api';
 
 const Option = Select.Option
+const pageSize = 3
 
 export default class ProductHome extends Component {
 
     state = {
-        product: [
-            {
-                "status": 1,
-                "imgs": [],
-                "_id": "5f7be2b8f809f909e851c99f",
-                "categoryId": "5f793e0750831929f088a2c3",
-                "pCategoryId": "0",
-                "name": "Audi",
-                "price": 66666,
-                "desc": "A6, remote start, heated seats",
-                "__v": 0
-            },
-            {
-                "status": 1,
-                "imgs": [],
-                "_id": "5f7be4cf6f867c43f09601d0",
-                "categoryId": "5f793e0750831929f088a2c3",
-                "pCategoryId": "0",
-                "name": "Honda",
-                "price": 33333,
-                "desc": "Civic, blind point, heated seats",
-                "__v": 0
-            },
-            {
-                "status": 1,
-                "imgs": [],
-                "_id": "5f7be4f76f867c43f09601d1",
-                "categoryId": "5f793e0750831929f088a2c3",
-                "pCategoryId": "0",
-                "name": "Toyota",
-                "price": 44444,
-                "desc": "Rav4, blind point, light",
-                "__v": 0
-            },
-            {
-                "status": 1,
-                "imgs": [],
-                "_id": "5f7be5246f867c43f09601d2",
-                "categoryId": "5f793e0750831929f088a2c3",
-                "pCategoryId": "0",
-                "name": "Benz",
-                "price": 77777,
-                "desc": "C300, voice control",
-                "__v": 0
-            }
-        ]
+        product: [],
+        total: 0,
+        loading: false
     }
 
     initColums = () => {
@@ -61,19 +20,23 @@ export default class ProductHome extends Component {
             {
                 title: 'Product Name',
                 dataIndex: 'name',
+                width: '20%'
             },
             {
                 title: 'Description',
                 dataIndex: 'desc',
+                width: '40%'
             },
             {
                 title: 'Price',
                 dataIndex: 'price',
+                width: '13%',
                 render: (price) => '$' + price
             },
             {
                 title: 'Status',
                 dataIndex: 'status',
+                width: '14%',
                 render: () => {
 
                     return (
@@ -94,13 +57,33 @@ export default class ProductHome extends Component {
         ];
     }
 
+    getProductList = async (pageNum) => {
+        this.setState({ loading: true })
+        const result = await reqProductList(pageNum, pageSize)
+        this.setState({ loading: false })
+        if (result.code === 0) {
+            const { total, list } = result.data
+            this.setState({
+                product: list,
+                total
+            })
+            // console.log(list);
+        } else {
+            message.error('Error, please try again')
+        }
+    }
+
+    componentDidMount() {
+        this.getProductList(1)
+    }
+
     componentWillMount() {
         this.initColums()
     }
 
     render() {
 
-        const { product } = this.state
+        const { product, loading, total } = this.state
 
         const title = (
             <span>
@@ -123,9 +106,17 @@ export default class ProductHome extends Component {
             <Card title={title} extra={extra}>
                 <Table
                     bordered
+                    loading={loading}
                     rowKey='_id'
                     dataSource={product}
-                    columns={this.columns} />
+                    columns={this.columns}
+                    pagination={{
+                        total,
+                        defaultPageSize: pageSize,
+                        showQuickJumper: true,
+                        onChange: (pageNum) => { this.getProductList(pageNum) }
+                    }}
+                />
             </Card>
         )
     }

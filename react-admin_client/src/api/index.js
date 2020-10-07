@@ -16,3 +16,6 @@ export const reqCategoryList = (parentId) => ajax('/manage/category/list', {pare
 
 //update category name
 export const reqUpdateCategory = (categoryId, categoryName) => ajax('/manage/category/update', {categoryId, categoryName}, 'POST')
+
+//get product list
+export const reqProductList = (pageNum, pageSize) => ajax('/manage/product/list', {pageNum, pageSize})
