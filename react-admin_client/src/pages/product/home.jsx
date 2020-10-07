@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Select, Card, Button, Table, Input, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons';
 import LinkButton from '../../components/link-button';
-import { reqProductList } from '../../api';
+import { reqProductList, reqProductSearch } from '../../api';
 
 const Option = Select.Option
 const pageSize = 3
@@ -12,7 +12,9 @@ export default class ProductHome extends Component {
     state = {
         product: [],
         total: 0,
-        loading: false
+        loading: false,
+        searchType: 'productName',
+        searchWord: ''
     }
 
     initColums = () => {
@@ -59,7 +61,17 @@ export default class ProductHome extends Component {
 
     getProductList = async (pageNum) => {
         this.setState({ loading: true })
-        const result = await reqProductList(pageNum, pageSize)
+
+        const {searchWord, searchType} = this.state
+
+        let result
+
+        if(searchWord){
+            result = await reqProductSearch({ pageNum, pageSize, searchWord, searchType })
+        } else {
+            result = await reqProductList(pageNum, pageSize)
+        }
+        
         this.setState({ loading: false })
         if (result.code === 0) {
             const { total, list } = result.data
@@ -83,16 +95,24 @@ export default class ProductHome extends Component {
 
     render() {
 
-        const { product, loading, total } = this.state
+        const { product, loading, total, searchType } = this.state
 
         const title = (
             <span>
-                <Select value='1' style={{ width: 160 }}>
-                    <Option value='1'>Search by Name</Option>
-                    <Option value='2'>Search by Description</Option>
+                <Select
+                    value={searchType}
+                    style={{ width: 160 }}
+                    onChange={(value) => this.setState({ searchType: value })}
+                >
+                    <Option value='productName'>Search by Name</Option>
+                    <Option value='productDesc'>Search by Description</Option>
                 </Select>
-                <Input placeholder='Key Word' style={{ width: 150, margin: '0 15px' }} />
-                <Button type='primary'>Search</Button>
+                <Input 
+                placeholder='Key Word' 
+                style={{ width: 150, margin: '0 15px' }} 
+                onChange = {(event) => this.setState({searchWord: event.target.value})}
+                />
+                <Button type='primary' onClick={()=>this.getProductList(1)}>Search</Button>
             </span>
         )
 

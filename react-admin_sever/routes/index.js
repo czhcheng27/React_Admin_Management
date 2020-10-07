@@ -93,6 +93,25 @@ router.get('/manage/product/list', function (req, res) {
     })
 })
 
+// search product
+router.get('/manage/product/search', (req, res) => {
+  const {pageNum, pageSize, productName, productDesc} = req.query
+  let contition = {}
+  if (productName) {
+    contition = {name: new RegExp(`^.*${productName}.*$`)}
+  } else if (productDesc) {
+    contition = {desc: new RegExp(`^.*${productDesc}.*$`)}
+  }
+  ProductModel.find(contition)
+    .then(products => {
+      res.send({code: 0, data: pageFilter(products, pageNum, pageSize)})
+    })
+    .catch(error => {
+      console.error('Error', error)
+      res.send({code: 1, msg: 'Error, please try again'})
+    })
+})
+
 
 function pageFilter(arr, pageNum, pageSize) {
   pageNum = pageNum * 1
