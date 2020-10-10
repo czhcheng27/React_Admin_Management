@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
-import { Form, Input, Card, Upload, Button, Cascader } from 'antd'
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Form, Input, Card, Upload, Button, Cascader, Modal, message } from 'antd'
+import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons';
 
-import { reqCategoryList } from '../../api/index'
+import { reqCategoryList, reqDeleteImage } from '../../api/index'
 import LinkButton from '../../components/link-button';
 
 const Item = Form.Item
@@ -14,6 +14,63 @@ export default class AddUpdate extends Component {
 
     state = {
         options: [],
+        previewVisible: false,
+        previewImage: '',
+        previewTitle: '',
+        fileList: [],
+    }
+
+    getBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    handleCancel = () => this.setState({ previewVisible: false });
+
+    handlePreview = async file => {
+        if (!file.url && !file.preview) {
+            file.preview = await this.getBase64(file.originFileObj);
+        }
+
+        this.setState({
+            previewImage: file.url || file.preview,
+            previewVisible: true,
+            previewTitle: file.name || file.url.substring(file.url.lastIndexOf('/') + 1),
+        });
+    };
+
+    handleChange = async ({ file, fileList }) => {
+        // console.log('handleChange', file, fileList[fileList.length-1], file.status, file===fileList[fileList.length-1]);
+
+        //when update success, correction the current file's name & url
+        if (file.status === 'done') {
+            const result = file.response//{code:0, data:{name: 'xxx.jpg', url: 'xxx'}}
+            console.log(result);
+            if (result.code === 0) {
+                // console.log(result.data);
+                message.success('Upload image success')
+                const { name, url } = result.data
+                let file = fileList[fileList.length - 1]
+                file.name = name
+                file.url = url
+            } else {
+                message.error('Upload image failed')
+            }
+        } else if ( file.status === 'removed') {
+            const result = await reqDeleteImage(file.name)
+            if(result.code===0){
+                message.success('Delete image success')
+            } else {
+                message.error('Delete image failed')
+            }
+        }
+
+
+        this.setState({ fileList });
     }
 
     initOptions = (categorys) => {
@@ -109,40 +166,30 @@ export default class AddUpdate extends Component {
 
     submit = () => {
         this.formRef.current.validateFields()
-            .then(() => {
-                console.log('Success');
+            .then((values) => {
+                console.log('Success', values);
+                let imgs
+                imgs = this.state.fileList.map(file => file.name)
+                console.log('imgs', imgs);
             })
             .catch(() => {
                 console.log('Failed');
             })
     }
 
-    /* testSubname = async (parentId) => {
-        const result = await reqCategoryList(parentId)
-        let categorys = result.data
-        categorys.map(async c => {
- 
-            let subResult = await reqCategoryList(c._id)
-            let subCat = subResult.data
-            if(subCat){
-                this.setState({leaf: false})
-            } else{
-                this.setState({leaf: true})
-            }
- 
-            
-        })
-    }
- 
-    componentWillMount() {
-        this.testSubname('0')
-    } */
-
     componentDidMount() {
         this.getCategory('0')
     }
 
     render() {
+
+        const { previewVisible, previewImage, fileList, previewTitle } = this.state;
+        const uploadButton = (
+            <div>
+                <PlusOutlined />
+                <div style={{ marginTop: 8 }}>Upload</div>
+            </div>
+        );
 
         const formItemLayout = {
             labelCol: { span: 2 },
@@ -191,7 +238,13 @@ export default class AddUpdate extends Component {
                         <Input placeholder='Please type price' addonAfter="CAD" />
                     </Item>
 
-                    <Item label='Category' >
+                    <Item
+                        label='Category'
+                        name='categoryId'
+                        rules={[
+                            { required: true, message: "Category must be type in" }
+                        ]}
+                    >
                         <Cascader
                             options={this.state.options}
                             loadData={this.loadData}
@@ -201,7 +254,25 @@ export default class AddUpdate extends Component {
                     </Item>
 
                     <Item label='Pictures' >
-                        <div>Pictures</div>
+                        <Upload
+                            action="/manage/img/upload"
+                            accept='image/*'//File types that can be accepted
+                            name='image'//The name of uploading file
+                            listType="picture-card"
+                            fileList={fileList}
+                            onPreview={this.handlePreview}
+                            onChange={this.handleChange}
+                        >
+                            {fileList.length >= 9 ? null : uploadButton}
+                        </Upload>
+                        <Modal
+                            visible={previewVisible}
+                            title={previewTitle}
+                            footer={null}
+                            onCancel={this.handleCancel}
+                        >
+                            <img alt="example" style={{ width: '100%' }} src={previewImage} />
+                        </Modal>
                     </Item>
 
                     <Item label='Details' >

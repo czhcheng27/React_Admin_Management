@@ -27,3 +27,6 @@ export const reqProductSearch = ({ pageNum, pageSize, searchWord, searchType }) 
         pageSize,
         [searchType]: searchWord
     })
+
+//delete image
+export const reqDeleteImage = (name) => ajax('/manage/img/delete', {name}, 'POST')

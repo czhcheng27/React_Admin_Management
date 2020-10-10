@@ -134,4 +134,6 @@ function pageFilter(arr, pageNum, pageSize) {
   }
 }
 
+require('./file-upload')(router)
+
 module.exports = router;
