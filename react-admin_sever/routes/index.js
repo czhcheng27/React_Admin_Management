@@ -124,6 +124,18 @@ router.post('/manage/product/add', (req, res) => {
   })
 })
 
+//update product
+router.post('/manage/product/update', (req, res) => {
+  const product = req.body
+  ProductModel.findByIdAndUpdate({_id: product._id}, product, function (err, oldDoc){
+    if(!err){
+      res.send({code: 0})
+    } else {
+      res.send({code:1, msg: 'Update product failed'})
+    }
+  })
+})
+
 
 function pageFilter(arr, pageNum, pageSize) {
   pageNum = pageNum * 1

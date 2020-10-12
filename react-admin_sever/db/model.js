@@ -73,7 +73,9 @@ const productSchema = new mongoose.Schema({
     desc: { type: String },
     status: { type: Number, default: 1 }, 
     imgs: { type: Array, default: [] }, 
-    detail: { type: String }
+    detail: { type: String },
+    pCategoryIdName: { type: String }, 
+    categoryIdName: { type: String }, 
 })
 //define Model
 const ProductModel = mongoose.model('products', productSchema)

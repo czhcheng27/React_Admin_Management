@@ -4,7 +4,7 @@ import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons';
 
 import { reqCategoryList, reqDeleteImage, reqAddProduct } from '../../api/index'
 import LinkButton from '../../components/link-button';
-import RichTextEditor from './rich-text-editor' 
+import RichTextEditor from './rich-text-editor'
 
 const Item = Form.Item
 const TextArea = Input.TextArea
@@ -21,7 +21,7 @@ export default class AddUpdate extends Component {
         fileList: [],
     }
 
-    constructor (props) {
+    constructor(props) {
         super(props)
         this.edit = React.createRef()
     }
@@ -66,9 +66,9 @@ export default class AddUpdate extends Component {
             } else {
                 message.error('Upload image failed')
             }
-        } else if ( file.status === 'removed') {
+        } else if (file.status === 'removed') {
             const result = await reqDeleteImage(file.name)
-            if(result.code===0){
+            if (result.code === 0) {
                 message.success('Delete image success')
             } else {
                 message.error('Delete image failed')
@@ -102,7 +102,7 @@ export default class AddUpdate extends Component {
         }
         )
 
-        // console.log(categoryOption);
+        console.log(categoryOption);
         let newArry = []
         categoryOption.map(c => {
 
@@ -117,7 +117,7 @@ export default class AddUpdate extends Component {
                 // console.log(newArry);
             })
         })
-        // console.log(newArry);
+        console.log(newArry);
         this.setState({ options: newArry })
 
     }
@@ -172,7 +172,7 @@ export default class AddUpdate extends Component {
 
     submit = () => {
         this.formRef.current.validateFields()
-            .then(async(values) => {
+            .then(async (values) => {
                 // console.log('Success', values);
                 let imgs
                 imgs = this.state.fileList.map(file => file.name)
@@ -181,25 +181,49 @@ export default class AddUpdate extends Component {
                 // console.log('detail', detail);
 
                 //collect data
-                const {name, desc, price, categoryIds} = values
-                let pCategoryId, categoryId
-                if(categoryIds.length===1){
+                const { name, desc, price, categoryIds } = values
+                console.log('categoryIds', categoryIds);
+                let pCategoryName = this.state.options
+                console.log('newArry', pCategoryName);
+                let pCategoryId, categoryId, pCategoryIdName, categoryIdName
+                if (categoryIds.length === 1) {
+
+                    let hasSubCategory = pCategoryName.filter((c => !!c.isLeaf))
+                    console.log('hasSubCategory', hasSubCategory);
+                    let firstLevelCategory = hasSubCategory.find(c => c.value === categoryIds[0])
+                    console.log('firstLevelCategory', firstLevelCategory.label);
+                    pCategoryIdName = firstLevelCategory.label
+
                     pCategoryId = '0'
-                    categoryId = categoryIds
+                    categoryId = categoryIds[0]
                 } else {
+
+                    //findout the one which isLeaf:false has subcategory
+                    let hasSubCategory = pCategoryName.filter((c => !c.isLeaf))
+                    console.log('hasSubCategory', hasSubCategory);
+                    let firstLevelCategory = hasSubCategory.find(c => c.value === categoryIds[0])
+                    console.log('firstLevelCategory', firstLevelCategory.label);
+                    pCategoryIdName = firstLevelCategory.label
+
+                    //findout all the categorys for subcategory & the one which _id is the same
+                    let subCategoryChildren = firstLevelCategory.children.find(c => c.value === categoryIds[1])
+                    console.log('subCategoryChildren', subCategoryChildren.label);
+                    categoryIdName = subCategoryChildren.label
+
                     pCategoryId = categoryIds[0]
                     categoryId = categoryIds[1]
                 }
-                let product = {name, desc, price, categoryId, pCategoryId, imgs, detail}
+                let product = { name, desc, price, categoryId, pCategoryId, imgs, detail, pCategoryIdName, categoryIdName }
+                console.log('product', product);
 
                 //send request
                 const result = await reqAddProduct(product)
 
                 //message.success/error
-                if(result.code===0){
+                if (result.code === 0) {
                     this.props.history.goBack()
                     message.success('Add product success')
-                }else{
+                } else {
                     message.error('Add new product failed')
                 }
             })
@@ -208,11 +232,36 @@ export default class AddUpdate extends Component {
             })
     }
 
+    componentWillMount = async () => {
+        const product = this.props.location.state
+        // const {pCategoryId, categoryId} = product
+        // console.log('product', product, pCategoryId, categoryId);
+        console.log('options', this.state.options);
+        this.isUpdate = !!product
+        this.product = product || {}
+    }
+
     componentDidMount() {
         this.getCategory('0')
     }
 
     render() {
+
+        const { isUpdate, product } = this
+        const { categoryId, pCategoryId, categoryIdName, pCategoryIdName } = product
+        // console.log('name', product);
+
+        let categoryIds = []
+
+        if (isUpdate) {
+            if (pCategoryId === '0') {
+                categoryIds.push(pCategoryIdName)
+            } else {
+                categoryIds.push(pCategoryIdName)
+                categoryIds.push(categoryIdName)
+            }
+        }
+        // console.log('categoryIds', categoryIds);
 
         const { previewVisible, previewImage, fileList, previewTitle } = this.state;
         const uploadButton = (
@@ -232,7 +281,7 @@ export default class AddUpdate extends Component {
                 <LinkButton>
                     <ArrowLeftOutlined onClick={() => this.props.history.goBack()} />
                 </LinkButton>
-                Add New Product
+                {isUpdate ? 'Update Product' : 'Add New Product'}
             </span>
         )
         return (
@@ -241,6 +290,7 @@ export default class AddUpdate extends Component {
                     <Item
                         label='Name'
                         name='name'
+                        initialValue={product.name}
                         rules={[
                             { required: true, message: "Please type your product name" }
                         ]}
@@ -251,6 +301,7 @@ export default class AddUpdate extends Component {
                     <Item
                         label='Description'
                         name='desc'
+                        initialValue={product.desc}
                         rules={[
                             { required: true, message: "Please type your description" }
                         ]}
@@ -261,6 +312,7 @@ export default class AddUpdate extends Component {
                     <Item
                         label='Price'
                         name='price'
+                        initialValue={product.price}
                         rules={[
                             { required: true, message: "Please type your price" },
                             { validator: this.checkPrice }
@@ -272,6 +324,7 @@ export default class AddUpdate extends Component {
                     <Item
                         label='Category'
                         name='categoryIds'
+                        initialValue={categoryIds}
                         rules={[
                             { required: true, message: "Category must be type in" }
                         ]}

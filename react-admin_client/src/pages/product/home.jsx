@@ -52,7 +52,7 @@ export default class ProductHome extends Component {
                 title: 'Operation',
                 render: (product) => (
                     <span>
-                        <LinkButton>Edit</LinkButton>
+                        <LinkButton onClick={()=> this.props.history.push('/product/addupdate', product)}>Edit</LinkButton>
                     </span>
                 )
             },
