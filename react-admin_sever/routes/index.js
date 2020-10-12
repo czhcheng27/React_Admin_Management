@@ -112,6 +112,18 @@ router.get('/manage/product/search', (req, res) => {
     })
 })
 
+//add product
+router.post('/manage/product/add', (req, res) => {
+  const product = req.body
+  ProductModel.create(product, function (err, doc){
+    if(!err){
+      res.send({code:0, data: doc})
+    } else{
+      res.send({code:1, msg: 'Add product failed'})
+    }
+  })
+})
+
 
 function pageFilter(arr, pageNum, pageSize) {
   pageNum = pageNum * 1

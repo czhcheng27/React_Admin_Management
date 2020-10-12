@@ -2,8 +2,9 @@ import React, { Component } from 'react'
 import { Form, Input, Card, Upload, Button, Cascader, Modal, message } from 'antd'
 import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons';
 
-import { reqCategoryList, reqDeleteImage } from '../../api/index'
+import { reqCategoryList, reqDeleteImage, reqAddProduct } from '../../api/index'
 import LinkButton from '../../components/link-button';
+import RichTextEditor from './rich-text-editor' 
 
 const Item = Form.Item
 const TextArea = Input.TextArea
@@ -18,6 +19,11 @@ export default class AddUpdate extends Component {
         previewImage: '',
         previewTitle: '',
         fileList: [],
+    }
+
+    constructor (props) {
+        super(props)
+        this.edit = React.createRef()
     }
 
     getBase64 = (file) => {
@@ -166,11 +172,36 @@ export default class AddUpdate extends Component {
 
     submit = () => {
         this.formRef.current.validateFields()
-            .then((values) => {
-                console.log('Success', values);
+            .then(async(values) => {
+                // console.log('Success', values);
                 let imgs
                 imgs = this.state.fileList.map(file => file.name)
-                console.log('imgs', imgs);
+                // console.log('imgs', imgs);
+                const detail = this.edit.current.getDetail()
+                // console.log('detail', detail);
+
+                //collect data
+                const {name, desc, price, categoryIds} = values
+                let pCategoryId, categoryId
+                if(categoryIds.length===1){
+                    pCategoryId = '0'
+                    categoryId = categoryIds
+                } else {
+                    pCategoryId = categoryIds[0]
+                    categoryId = categoryIds[1]
+                }
+                let product = {name, desc, price, categoryId, pCategoryId, imgs, detail}
+
+                //send request
+                const result = await reqAddProduct(product)
+
+                //message.success/error
+                if(result.code===0){
+                    this.props.history.goBack()
+                    message.success('Add product success')
+                }else{
+                    message.error('Add new product failed')
+                }
             })
             .catch(() => {
                 console.log('Failed');
@@ -240,7 +271,7 @@ export default class AddUpdate extends Component {
 
                     <Item
                         label='Category'
-                        name='categoryId'
+                        name='categoryIds'
                         rules={[
                             { required: true, message: "Category must be type in" }
                         ]}
@@ -275,8 +306,8 @@ export default class AddUpdate extends Component {
                         </Modal>
                     </Item>
 
-                    <Item label='Details' >
-                        <div>Details</div>
+                    <Item label='Details' labelCol={2} wrapperCol={20}>
+                        <RichTextEditor ref={this.edit} />
                     </Item>
 
                     <Item>

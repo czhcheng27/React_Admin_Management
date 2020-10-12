@@ -30,3 +30,6 @@ export const reqProductSearch = ({ pageNum, pageSize, searchWord, searchType }) 
 
 //delete image
 export const reqDeleteImage = (name) => ajax('/manage/img/delete', {name}, 'POST')
+
+//add product
+export const reqAddProduct = (product) => ajax('/manage/product/add', product, "POST")
