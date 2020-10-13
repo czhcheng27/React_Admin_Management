@@ -192,11 +192,13 @@ export default class AddUpdate extends Component {
                 if (this.isUpdate) {
                     // product._id = this.product._id
                     if(categoryIds.length === 1) {
-                        let hasSubCategory = pCategoryName.find((c => c.value === categoryIds[0]))
+                        let hasSubCategory = pCategoryName.find((c => categoryIds[0] === c.label || c.value === categoryIds[0]))
+                        console.log('222', hasSubCategory);
                         pCategoryIdName = hasSubCategory.label
+                        console.log('hasSubCategory', hasSubCategory);
 
                         pCategoryId = '0'
-                        categoryId = categoryIds[0]
+                        categoryId = hasSubCategory.value
                     } else {
                         pCategoryId = categoryIds[0]
                         categoryId = categoryIds[1]
