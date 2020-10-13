@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
-import { Form, Input, Card, Upload, Button, Cascader, Modal, message } from 'antd'
+import { Form, Input, Card, Button, Cascader, message } from 'antd'
 import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons';
 
-import { reqCategoryList, reqDeleteImage, reqAddUpdateProduct } from '../../api/index'
+import { reqCategoryList, reqAddUpdateProduct } from '../../api/index'
 import LinkButton from '../../components/link-button';
 import RichTextEditor from './rich-text-editor'
 import PicturesWall from './pictures-wall'
@@ -16,11 +16,6 @@ export default class AddUpdate extends Component {
 
     state = {
         options: [],
-        // previewVisible: false,
-        // previewImage: '',
-        // previewTitle: '',
-        // fileList: [],
-        // fileListUpdate: []
     }
 
     constructor(props) {
@@ -28,59 +23,6 @@ export default class AddUpdate extends Component {
         this.edit = React.createRef()
         this.pw = React.createRef()
     }
-
-    /* getBase64 = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-    } */
-
-    // handleCancel = () => this.setState({ previewVisible: false });
-
-    /* handlePreview = async file => {
-        if (!file.url && !file.preview) {
-            file.preview = await this.getBase64(file.originFileObj);
-        }
-
-        this.setState({
-            previewImage: file.url || file.preview,
-            previewVisible: true,
-            previewTitle: file.name || file.url.substring(file.url.lastIndexOf('/') + 1),
-        });
-    }; */
-
-    /* handleChange = async ({ file, fileList }) => {
-        // console.log('handleChange', file, fileList[fileList.length-1], file.status, file===fileList[fileList.length-1]);
-
-        //when update success, correction the current file's name & url
-        if (file.status === 'done') {
-            const result = file.response//{code:0, data:{name: 'xxx.jpg', url: 'xxx'}}
-            console.log(result);
-            if (result.code === 0) {
-                // console.log(result.data);
-                message.success('Upload image success')
-                const { name, url } = result.data
-                let file = fileList[fileList.length - 1]
-                file.name = name
-                file.url = url
-            } else {
-                message.error('Upload image failed')
-            }
-        } else if (file.status === 'removed') {
-            const result = await reqDeleteImage(file.name)
-            if (result.code === 0) {
-                message.success('Delete image success')
-            } else {
-                message.error('Delete image failed')
-            }
-        }
-
-
-        this.setState({ fileList });
-    } */
 
     initOptions = (categorys) => {
         let categoryOption = categorys.map(async c => {
@@ -178,7 +120,6 @@ export default class AddUpdate extends Component {
             .then(async (values) => {
                 console.log('Success', values);
                 let imgs
-                // imgs = this.state.fileList.map(file => file.name)
                 imgs = this.pw.current.getImgs()
 
                 console.log('imgs', imgs);
@@ -195,7 +136,7 @@ export default class AddUpdate extends Component {
 
                 if (this.isUpdate) {
                     // product._id = this.product._id
-                    if(categoryIds.length === 1) {
+                    if (categoryIds.length === 1) {
                         let hasSubCategory = pCategoryName.find((c => categoryIds[0] === c.label || c.value === categoryIds[0]))
                         console.log('222', hasSubCategory);
                         pCategoryIdName = hasSubCategory.label
@@ -214,13 +155,13 @@ export default class AddUpdate extends Component {
                         console.log('pCategoryIdName,pCategoryId', pCategoryIdName, pCategoryId);
 
                         console.log('444', this.props.location.state.categoryIdName);
-                        if(categoryIds[1]===this.props.location.state.categoryIdName){
+                        if (categoryIds[1] === this.props.location.state.categoryIdName) {
                             console.log('555', categoryIdName, categoryId);
                             categoryIdName = this.props.location.state.categoryIdName
                             categoryId = this.props.location.state.categoryId
-                        } else{
+                        } else {
                             let subCategoryChildren = hasSubCategory.children.find(c => c.value === categoryIds[1])
-                        categoryIdName = subCategoryChildren.label
+                            categoryIdName = subCategoryChildren.label
                         }
 
                         // let subCategoryChildren = hasSubCategory.children.find(c => c.value === categoryIds[1])
@@ -312,25 +253,6 @@ export default class AddUpdate extends Component {
         }
         // console.log('categoryIds', categoryIds);
 
-        // let fileListUpdate = []
-
-        // if (imgs && imgs.length > 0) {
-        //     fileListUpdate = imgs.map((img, index) => ({
-        //         uid: -index,
-        //         name: img,
-        //         status: 'done',
-        //         url: 'http://localhost:9000/upload/' + img
-        //     }))
-        // }
-
-        const { previewVisible, previewImage, fileList, previewTitle } = this.state;
-        const uploadButton = (
-            <div>
-                <PlusOutlined />
-                <div style={{ marginTop: 8 }}>Upload</div>
-            </div>
-        );
-
         const formItemLayout = {
             labelCol: { span: 2 },
             wrapperCol: { span: 8 },
@@ -398,26 +320,7 @@ export default class AddUpdate extends Component {
                     </Item>
 
                     <Item label='Pictures' >
-                        {/* <Upload
-                            action="/manage/img/upload"
-                            accept='image/*'//File types that can be accepted
-                            name='image'//The name of uploading file
-                            listType="picture-card"
-                            fileList={isUpdate ? fileListUpdate : fileList}
-                            onPreview={this.handlePreview}
-                            onChange={this.handleChange}
-                        >
-                            {fileList.length >= 9 ? null : uploadButton}
-                        </Upload>
-                        <Modal
-                            visible={previewVisible}
-                            title={previewTitle}
-                            footer={null}
-                            onCancel={this.handleCancel}
-                        >
-                            <img alt="example" style={{ width: '100%' }} src={previewImage} />
-                        </Modal> */}
-                        <PicturesWall ref={this.pw} imgs={imgs}/>
+                        <PicturesWall ref={this.pw} imgs={imgs} />
                     </Item>
 
                     <Item label='Details' labelCol={2} wrapperCol={20}>
