@@ -5,6 +5,7 @@ import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons';
 import { reqCategoryList, reqDeleteImage, reqAddUpdateProduct } from '../../api/index'
 import LinkButton from '../../components/link-button';
 import RichTextEditor from './rich-text-editor'
+import PicturesWall from './pictures-wall'
 
 const Item = Form.Item
 const TextArea = Input.TextArea
@@ -15,30 +16,31 @@ export default class AddUpdate extends Component {
 
     state = {
         options: [],
-        previewVisible: false,
-        previewImage: '',
-        previewTitle: '',
-        fileList: [],
-        fileListUpdate: []
+        // previewVisible: false,
+        // previewImage: '',
+        // previewTitle: '',
+        // fileList: [],
+        // fileListUpdate: []
     }
 
     constructor(props) {
         super(props)
         this.edit = React.createRef()
+        this.pw = React.createRef()
     }
 
-    getBase64 = (file) => {
+    /* getBase64 = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = () => resolve(reader.result);
             reader.onerror = error => reject(error);
         });
-    }
+    } */
 
-    handleCancel = () => this.setState({ previewVisible: false });
+    // handleCancel = () => this.setState({ previewVisible: false });
 
-    handlePreview = async file => {
+    /* handlePreview = async file => {
         if (!file.url && !file.preview) {
             file.preview = await this.getBase64(file.originFileObj);
         }
@@ -48,9 +50,9 @@ export default class AddUpdate extends Component {
             previewVisible: true,
             previewTitle: file.name || file.url.substring(file.url.lastIndexOf('/') + 1),
         });
-    };
+    }; */
 
-    handleChange = async ({ file, fileList }) => {
+    /* handleChange = async ({ file, fileList }) => {
         // console.log('handleChange', file, fileList[fileList.length-1], file.status, file===fileList[fileList.length-1]);
 
         //when update success, correction the current file's name & url
@@ -78,7 +80,7 @@ export default class AddUpdate extends Component {
 
 
         this.setState({ fileList });
-    }
+    } */
 
     initOptions = (categorys) => {
         let categoryOption = categorys.map(async c => {
@@ -176,7 +178,9 @@ export default class AddUpdate extends Component {
             .then(async (values) => {
                 console.log('Success', values);
                 let imgs
-                imgs = this.state.fileList.map(file => file.name)
+                // imgs = this.state.fileList.map(file => file.name)
+                imgs = this.pw.current.getImgs()
+
                 console.log('imgs', imgs);
                 const detail = this.edit.current.getDetail()
                 console.log('detail', detail);
@@ -200,14 +204,27 @@ export default class AddUpdate extends Component {
                         pCategoryId = '0'
                         categoryId = hasSubCategory.value
                     } else {
-                        pCategoryId = categoryIds[0]
-                        categoryId = categoryIds[1]
+                        // pCategoryId = categoryIds[0]
+                        // categoryId = categoryIds[1]
 
-                        let hasSubCategory = pCategoryName.find((c => c.value === categoryIds[0]))
+                        let hasSubCategory = pCategoryName.find((c => categoryIds[0] === c.label || c.value === categoryIds[0]))
+                        console.log('333', hasSubCategory);
                         pCategoryIdName = hasSubCategory.label
+                        pCategoryId = hasSubCategory.value
+                        console.log('pCategoryIdName,pCategoryId', pCategoryIdName, pCategoryId);
 
-                        let subCategoryChildren = hasSubCategory.children.find(c => c.value === categoryIds[1])
+                        console.log('444', this.props.location.state.categoryIdName);
+                        if(categoryIds[1]===this.props.location.state.categoryIdName){
+                            console.log('555', categoryIdName, categoryId);
+                            categoryIdName = this.props.location.state.categoryIdName
+                            categoryId = this.props.location.state.categoryId
+                        } else{
+                            let subCategoryChildren = hasSubCategory.children.find(c => c.value === categoryIds[1])
                         categoryIdName = subCategoryChildren.label
+                        }
+
+                        // let subCategoryChildren = hasSubCategory.children.find(c => c.value === categoryIds[1])
+                        // categoryIdName = subCategoryChildren.label
                     }
                 } else {
                     if (categoryIds.length === 1) {
@@ -254,9 +271,9 @@ export default class AddUpdate extends Component {
                 //message.success/error
                 if (result.code === 0) {
                     this.props.history.goBack()
-                    message.success(`${this.isUpdate ? 'Update' : 'Add'}product success`)
+                    message.success(`${this.isUpdate ? 'Update' : 'Add'} product success`)
                 } else {
-                    message.error(`${this.isUpdate ? 'Update' : 'Add'}product failed`)
+                    message.error(`${this.isUpdate ? 'Update' : 'Add'} product failed`)
                 }
             })
             .catch(() => {
@@ -295,16 +312,16 @@ export default class AddUpdate extends Component {
         }
         // console.log('categoryIds', categoryIds);
 
-        let fileListUpdate = []
+        // let fileListUpdate = []
 
-        if (imgs && imgs.length > 0) {
-            fileListUpdate = imgs.map((img, index) => ({
-                uid: -index,
-                name: img,
-                status: 'done',
-                url: 'http://localhost:9000/upload/' + img
-            }))
-        }
+        // if (imgs && imgs.length > 0) {
+        //     fileListUpdate = imgs.map((img, index) => ({
+        //         uid: -index,
+        //         name: img,
+        //         status: 'done',
+        //         url: 'http://localhost:9000/upload/' + img
+        //     }))
+        // }
 
         const { previewVisible, previewImage, fileList, previewTitle } = this.state;
         const uploadButton = (
@@ -381,7 +398,7 @@ export default class AddUpdate extends Component {
                     </Item>
 
                     <Item label='Pictures' >
-                        <Upload
+                        {/* <Upload
                             action="/manage/img/upload"
                             accept='image/*'//File types that can be accepted
                             name='image'//The name of uploading file
@@ -399,7 +416,8 @@ export default class AddUpdate extends Component {
                             onCancel={this.handleCancel}
                         >
                             <img alt="example" style={{ width: '100%' }} src={previewImage} />
-                        </Modal>
+                        </Modal> */}
+                        <PicturesWall ref={this.pw} imgs={imgs}/>
                     </Item>
 
                     <Item label='Details' labelCol={2} wrapperCol={20}>
