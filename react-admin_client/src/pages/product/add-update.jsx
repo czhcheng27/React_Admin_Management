@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Form, Input, Card, Upload, Button, Cascader, Modal, message } from 'antd'
 import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons';
 
-import { reqCategoryList, reqDeleteImage, reqAddProduct } from '../../api/index'
+import { reqCategoryList, reqDeleteImage, reqAddUpdateProduct } from '../../api/index'
 import LinkButton from '../../components/link-button';
 import RichTextEditor from './rich-text-editor'
 
@@ -19,6 +19,7 @@ export default class AddUpdate extends Component {
         previewImage: '',
         previewTitle: '',
         fileList: [],
+        fileListUpdate: []
     }
 
     constructor(props) {
@@ -173,58 +174,87 @@ export default class AddUpdate extends Component {
     submit = () => {
         this.formRef.current.validateFields()
             .then(async (values) => {
-                // console.log('Success', values);
+                console.log('Success', values);
                 let imgs
                 imgs = this.state.fileList.map(file => file.name)
-                // console.log('imgs', imgs);
+                console.log('imgs', imgs);
                 const detail = this.edit.current.getDetail()
-                // console.log('detail', detail);
+                console.log('detail', detail);
 
                 //collect data
                 const { name, desc, price, categoryIds } = values
                 console.log('categoryIds', categoryIds);
                 let pCategoryName = this.state.options
                 console.log('newArry', pCategoryName);
+
                 let pCategoryId, categoryId, pCategoryIdName, categoryIdName
-                if (categoryIds.length === 1) {
 
-                    let hasSubCategory = pCategoryName.filter((c => !!c.isLeaf))
-                    console.log('hasSubCategory', hasSubCategory);
-                    let firstLevelCategory = hasSubCategory.find(c => c.value === categoryIds[0])
-                    console.log('firstLevelCategory', firstLevelCategory.label);
-                    pCategoryIdName = firstLevelCategory.label
+                if (this.isUpdate) {
+                    // product._id = this.product._id
+                    if(categoryIds.length === 1) {
+                        let hasSubCategory = pCategoryName.find((c => c.value === categoryIds[0]))
+                        pCategoryIdName = hasSubCategory.label
 
-                    pCategoryId = '0'
-                    categoryId = categoryIds[0]
+                        pCategoryId = '0'
+                        categoryId = categoryIds[0]
+                    } else {
+                        pCategoryId = categoryIds[0]
+                        categoryId = categoryIds[1]
+
+                        let hasSubCategory = pCategoryName.find((c => c.value === categoryIds[0]))
+                        pCategoryIdName = hasSubCategory.label
+
+                        let subCategoryChildren = hasSubCategory.children.find(c => c.value === categoryIds[1])
+                        categoryIdName = subCategoryChildren.label
+                    }
                 } else {
+                    if (categoryIds.length === 1) {
 
-                    //findout the one which isLeaf:false has subcategory
-                    let hasSubCategory = pCategoryName.filter((c => !c.isLeaf))
-                    console.log('hasSubCategory', hasSubCategory);
-                    let firstLevelCategory = hasSubCategory.find(c => c.value === categoryIds[0])
-                    console.log('firstLevelCategory', firstLevelCategory.label);
-                    pCategoryIdName = firstLevelCategory.label
+                        let hasSubCategory = pCategoryName.filter((c => !!c.isLeaf))
+                        console.log('hasSubCategory', hasSubCategory);
+                        let firstLevelCategory = hasSubCategory.find(c => c.value === categoryIds[0])
+                        console.log('firstLevelCategory', firstLevelCategory.label);
+                        pCategoryIdName = firstLevelCategory.label
 
-                    //findout all the categorys for subcategory & the one which _id is the same
-                    let subCategoryChildren = firstLevelCategory.children.find(c => c.value === categoryIds[1])
-                    console.log('subCategoryChildren', subCategoryChildren.label);
-                    categoryIdName = subCategoryChildren.label
+                        pCategoryId = '0'
+                        categoryId = categoryIds[0]
+                    } else {
 
-                    pCategoryId = categoryIds[0]
-                    categoryId = categoryIds[1]
+                        //findout the one which isLeaf:false has subcategory
+                        let hasSubCategory = pCategoryName.filter((c => !c.isLeaf))
+                        console.log('hasSubCategory', hasSubCategory);
+                        let firstLevelCategory = hasSubCategory.find(c => c.value === categoryIds[0])
+                        console.log('firstLevelCategory', firstLevelCategory.label);
+                        pCategoryIdName = firstLevelCategory.label
+
+                        //findout all the categorys for subcategory & the one which _id is the same
+                        let subCategoryChildren = firstLevelCategory.children.find(c => c.value === categoryIds[1])
+                        console.log('subCategoryChildren', subCategoryChildren.label);
+                        categoryIdName = subCategoryChildren.label
+
+                        pCategoryId = categoryIds[0]
+                        categoryId = categoryIds[1]
+                    }
                 }
+
+
                 let product = { name, desc, price, categoryId, pCategoryId, imgs, detail, pCategoryIdName, categoryIdName }
                 console.log('product', product);
 
+                if (this.isUpdate) {
+                    product._id = this.product._id
+                }
+                console.log('product._id', product._id);
+
                 //send request
-                const result = await reqAddProduct(product)
+                const result = await reqAddUpdateProduct(product)
 
                 //message.success/error
                 if (result.code === 0) {
                     this.props.history.goBack()
-                    message.success('Add product success')
+                    message.success(`${this.isUpdate ? 'Update' : 'Add'}product success`)
                 } else {
-                    message.error('Add new product failed')
+                    message.error(`${this.isUpdate ? 'Update' : 'Add'}product failed`)
                 }
             })
             .catch(() => {
@@ -236,7 +266,7 @@ export default class AddUpdate extends Component {
         const product = this.props.location.state
         // const {pCategoryId, categoryId} = product
         // console.log('product', product, pCategoryId, categoryId);
-        console.log('options', this.state.options);
+        console.log('product', product);
         this.isUpdate = !!product
         this.product = product || {}
     }
@@ -248,7 +278,7 @@ export default class AddUpdate extends Component {
     render() {
 
         const { isUpdate, product } = this
-        const { categoryId, pCategoryId, categoryIdName, pCategoryIdName } = product
+        const { categoryId, pCategoryId, categoryIdName, pCategoryIdName, imgs, detail } = product
         // console.log('name', product);
 
         let categoryIds = []
@@ -262,6 +292,17 @@ export default class AddUpdate extends Component {
             }
         }
         // console.log('categoryIds', categoryIds);
+
+        let fileListUpdate = []
+
+        if (imgs && imgs.length > 0) {
+            fileListUpdate = imgs.map((img, index) => ({
+                uid: -index,
+                name: img,
+                status: 'done',
+                url: 'http://localhost:9000/upload/' + img
+            }))
+        }
 
         const { previewVisible, previewImage, fileList, previewTitle } = this.state;
         const uploadButton = (
@@ -343,7 +384,7 @@ export default class AddUpdate extends Component {
                             accept='image/*'//File types that can be accepted
                             name='image'//The name of uploading file
                             listType="picture-card"
-                            fileList={fileList}
+                            fileList={isUpdate ? fileListUpdate : fileList}
                             onPreview={this.handlePreview}
                             onChange={this.handleChange}
                         >
@@ -360,7 +401,7 @@ export default class AddUpdate extends Component {
                     </Item>
 
                     <Item label='Details' labelCol={2} wrapperCol={20}>
-                        <RichTextEditor ref={this.edit} />
+                        <RichTextEditor ref={this.edit} detail={detail} />
                     </Item>
 
                     <Item>
