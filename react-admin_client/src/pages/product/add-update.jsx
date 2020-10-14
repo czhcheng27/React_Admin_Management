@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Form, Input, Card, Button, Cascader, message } from 'antd'
-import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 
 import { reqCategoryList, reqAddUpdateProduct } from '../../api/index'
 import LinkButton from '../../components/link-button';
@@ -238,7 +238,7 @@ export default class AddUpdate extends Component {
     render() {
 
         const { isUpdate, product } = this
-        const { categoryId, pCategoryId, categoryIdName, pCategoryIdName, imgs, detail } = product
+        const { pCategoryId, categoryIdName, pCategoryIdName, imgs, detail } = product
         // console.log('name', product);
 
         let categoryIds = []

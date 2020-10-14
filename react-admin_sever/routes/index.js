@@ -136,6 +136,23 @@ router.post('/manage/product/update', (req, res) => {
   })
 })
 
+//update product status
+router.post('/manage/product/updateStatus', (req, res) => {
+  const {productId, status} = req.body
+  console.log('productId', productId);
+      console.log('status', status);
+  ProductModel.findByIdAndUpdate({_id: productId}, {status: status}, function (err, oldDoc){
+    if(!err){
+      console.log('productId', productId);
+      console.log('status', status);
+      res.send({code:0})
+    }else{
+      console.log('sss');
+      res.send({code:1, msg:'Error, please try again'})
+    }
+  })
+})
+
 
 function pageFilter(arr, pageNum, pageSize) {
   pageNum = pageNum * 1

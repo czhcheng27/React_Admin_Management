@@ -33,3 +33,6 @@ export const reqDeleteImage = (name) => ajax('/manage/img/delete', { name }, 'PO
 
 //add product
 export const reqAddUpdateProduct = (product) => ajax('/manage/product/' + (product._id ? 'update' : 'add'), product, "POST")
+
+//update product status
+export const reqUpdateStatus = (productId, status) => ajax('/manage/product/updateStatus', {productId, status}, 'POST')

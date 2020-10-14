@@ -31,8 +31,8 @@ class LeftNav extends Component {
                         <Link to='/product'>Product Manage</Link>
                     </Menu.Item>
                 </SubMenu> */
-                let openKey = menu.children.find( childItem => childItem.key===path)
-                if(openKey){
+                let openKey = menu.children.find(childItem => path.indexOf(childItem.key) === 0)
+                if (openKey) {
                     this.openKey = menu.key
                 }
 
@@ -45,12 +45,18 @@ class LeftNav extends Component {
         })
     }
 
-    componentWillMount(){
+    componentWillMount() {
         this.menu = this.getMenuNode(menuList)
     }
     render() {
 
-        const path = this.props.location.pathname
+        let path = this.props.location.pathname
+
+        if (path.indexOf('/product') === 0) {
+            path = '/product'
+        }
+
+
         const openKey = this.openKey
         return (
             <div className='left-nav'>

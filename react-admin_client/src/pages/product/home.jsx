@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Select, Card, Button, Table, Input, message } from 'antd'
 import { PlusOutlined } from '@ant-design/icons';
 import LinkButton from '../../components/link-button';
-import { reqProductList, reqProductSearch } from '../../api';
+import { reqProductList, reqProductSearch, reqUpdateStatus } from '../../api';
 
 const Option = Select.Option
 const pageSize = 3
@@ -37,13 +37,20 @@ export default class ProductHome extends Component {
             },
             {
                 title: 'Status',
-                dataIndex: 'status',
                 width: '14%',
-                render: () => {
-
+                render: (product) => {
+                    const { status, _id } = product
+                    const newStatus = status === 1 ? 2 : 1
                     return (
                         <span>
-                            <Button type='primary'>In Stock</Button>
+                            <Button
+                                type={status === 1 ? 'primary' : 'dashed'}
+                                style={{ marginBottom: 5, marginTop: 10 }}
+                                onClick = {() => this.updateStatus(_id, newStatus)}
+                            >
+                                { status === 1 ? 'In Stock' : 'Out of Stock'}
+                            </Button>
+                            <p>{status === 1 ? 'Click to Out of Stock' : 'Click to In Stock'}</p>
                         </span>
                     )
                 }
@@ -52,26 +59,40 @@ export default class ProductHome extends Component {
                 title: 'Operation',
                 render: (product) => (
                     <span>
-                        <LinkButton onClick={()=> this.props.history.push('/product/addupdate', product)}>Edit</LinkButton>
+                        <LinkButton onClick={() => this.props.history.push('/product/addupdate', product)}>Edit</LinkButton>
                     </span>
                 )
             },
         ];
     }
 
+    updateStatus = async (productId, status) => {
+        const result = await reqUpdateStatus(productId, status)
+        if(result.code===0){
+            message.success('Update Status Success')
+            this.getProductList(this.pageNum)
+        } else {
+            message.error('Update Status Failed')
+        }
+    }
+
     getProductList = async (pageNum) => {
+        
+        //save pageNum, becasue it will be used later in updateStatus function
+        this.pageNum = pageNum
+
         this.setState({ loading: true })
 
-        const {searchWord, searchType} = this.state
+        const { searchWord, searchType } = this.state
 
         let result
 
-        if(searchWord){
+        if (searchWord) {
             result = await reqProductSearch({ pageNum, pageSize, searchWord, searchType })
         } else {
             result = await reqProductList(pageNum, pageSize)
         }
-        
+
         this.setState({ loading: false })
         if (result.code === 0) {
             const { total, list } = result.data
@@ -111,17 +132,17 @@ export default class ProductHome extends Component {
                     <Option value='productName'>Search by Name</Option>
                     <Option value='productDesc'>Search by Description</Option>
                 </Select>
-                <Input 
-                placeholder='Key Word' 
-                style={{ width: 150, margin: '0 15px' }} 
-                onChange = {(event) => this.setState({searchWord: event.target.value})}
+                <Input
+                    placeholder='Key Word'
+                    style={{ width: 150, margin: '0 15px' }}
+                    onChange={(event) => this.setState({ searchWord: event.target.value })}
                 />
-                <Button type='primary' onClick={()=>this.getProductList(1)}>Search</Button>
+                <Button type='primary' onClick={() => this.getProductList(1)}>Search</Button>
             </span>
         )
 
         const extra = (
-            <Button type='primary' onClick = {this.addProduct}>
+            <Button type='primary' onClick={this.addProduct}>
                 <PlusOutlined />
                 Add Product
             </Button>
