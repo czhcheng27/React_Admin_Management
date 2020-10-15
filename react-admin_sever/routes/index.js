@@ -95,31 +95,31 @@ router.get('/manage/product/list', function (req, res) {
 
 // search product
 router.get('/manage/product/search', (req, res) => {
-  const {pageNum, pageSize, productName, productDesc} = req.query
+  const { pageNum, pageSize, productName, productDesc } = req.query
   let contition = {}
   if (productName) {
-    contition = {name: new RegExp(`^.*${productName}.*$`)}
+    contition = { name: new RegExp(`^.*${productName}.*$`) }
   } else if (productDesc) {
-    contition = {desc: new RegExp(`^.*${productDesc}.*$`)}
+    contition = { desc: new RegExp(`^.*${productDesc}.*$`) }
   }
   ProductModel.find(contition)
     .then(products => {
-      res.send({code: 0, data: pageFilter(products, pageNum, pageSize)})
+      res.send({ code: 0, data: pageFilter(products, pageNum, pageSize) })
     })
     .catch(error => {
       console.error('Error', error)
-      res.send({code: 1, msg: 'Error, please try again'})
+      res.send({ code: 1, msg: 'Error, please try again' })
     })
 })
 
 //add product
 router.post('/manage/product/add', (req, res) => {
   const product = req.body
-  ProductModel.create(product, function (err, doc){
-    if(!err){
-      res.send({code:0, data: doc})
-    } else{
-      res.send({code:1, msg: 'Add product failed'})
+  ProductModel.create(product, function (err, doc) {
+    if (!err) {
+      res.send({ code: 0, data: doc })
+    } else {
+      res.send({ code: 1, msg: 'Add product failed' })
     }
   })
 })
@@ -127,29 +127,52 @@ router.post('/manage/product/add', (req, res) => {
 //update product
 router.post('/manage/product/update', (req, res) => {
   const product = req.body
-  ProductModel.findByIdAndUpdate({_id: product._id}, product, function (err, oldDoc){
-    if(!err){
-      res.send({code: 0})
+  ProductModel.findByIdAndUpdate({ _id: product._id }, product, function (err, oldDoc) {
+    if (!err) {
+      res.send({ code: 0 })
     } else {
-      res.send({code:1, msg: 'Update product failed'})
+      res.send({ code: 1, msg: 'Update product failed' })
     }
   })
 })
 
 //update product status
 router.post('/manage/product/updateStatus', (req, res) => {
-  const {productId, status} = req.body
-  console.log('productId', productId);
-      console.log('status', status);
-  ProductModel.findByIdAndUpdate({_id: productId}, {status: status}, function (err, oldDoc){
-    if(!err){
-      console.log('productId', productId);
-      console.log('status', status);
-      res.send({code:0})
-    }else{
-      console.log('sss');
-      res.send({code:1, msg:'Error, please try again'})
+  const { productId, status } = req.body
+  // console.log('productId', productId);
+  //     console.log('status', status);
+  ProductModel.findByIdAndUpdate({ _id: productId }, { status: status }, function (err, oldDoc) {
+    if (!err) {
+      // console.log('productId', productId);
+      // console.log('status', status);
+      res.send({ code: 0 })
+    } else {
+      // console.log('sss');
+      res.send({ code: 1, msg: 'Error, please try again' })
     }
+  })
+})
+
+//add role
+router.post('/manage/role/add', (req, res) => {
+  const {roleName} = req.body
+  RoleModel.create({name: roleName})
+  .then(role => {
+    res.send({code:0, data: role})
+  })
+  .catch(err => {
+    res.send({code: 1, msg:'Add role failed, please try again'})
+  })
+})
+
+//get role list
+router.get('/manage/role/list', (req, res) => {
+  RoleModel.find()
+  .then(roles => {
+    res.send({code: 0, data: roles})
+  })
+  .catch(err => {
+    res.send({code: 1, msg: 'Get role list failed, please try again'})
   })
 })
 
