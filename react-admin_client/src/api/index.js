@@ -36,3 +36,9 @@ export const reqAddUpdateProduct = (product) => ajax('/manage/product/' + (produ
 
 //update product status
 export const reqUpdateStatus = (productId, status) => ajax('/manage/product/updateStatus', {productId, status}, 'POST')
+
+//get all role list
+export const reqRoleList = () => ajax('/manage/role/list')
+
+//add role
+export const reqAddRole = (roleName) => ajax('/manage/role/add', {roleName}, 'POST')
