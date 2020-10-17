@@ -42,3 +42,6 @@ export const reqRoleList = () => ajax('/manage/role/list')
 
 //add role
 export const reqAddRole = (roleName) => ajax('/manage/role/add', {roleName}, 'POST')
+
+//update role
+export const reqUpdateRole = (role) => ajax('/manage/role/update', role, 'POST')

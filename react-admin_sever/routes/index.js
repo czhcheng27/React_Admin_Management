@@ -155,25 +155,38 @@ router.post('/manage/product/updateStatus', (req, res) => {
 
 //add role
 router.post('/manage/role/add', (req, res) => {
-  const {roleName} = req.body
-  RoleModel.create({name: roleName})
-  .then(role => {
-    res.send({code:0, data: role})
-  })
-  .catch(err => {
-    res.send({code: 1, msg:'Add role failed, please try again'})
-  })
+  const { roleName } = req.body
+  RoleModel.create({ name: roleName })
+    .then(role => {
+      res.send({ code: 0, data: role })
+    })
+    .catch(err => {
+      res.send({ code: 1, msg: 'Add role failed, please try again' })
+    })
 })
 
 //get role list
 router.get('/manage/role/list', (req, res) => {
   RoleModel.find()
-  .then(roles => {
-    res.send({code: 0, data: roles})
-  })
-  .catch(err => {
-    res.send({code: 1, msg: 'Get role list failed, please try again'})
-  })
+    .then(roles => {
+      res.send({ code: 0, data: roles })
+    })
+    .catch(err => {
+      res.send({ code: 1, msg: 'Get role list failed, please try again' })
+    })
+})
+
+//update role
+router.post('/manage/role/update', (req, res) => {
+  const role = req.body
+  role.auth_time = Date.now()
+  RoleModel.findByIdAndUpdate({ _id: role._id }, role)
+    .then(oldRole => {
+      res.send({ code: 0 })
+    })
+    .catch(err => {
+      res.send({ code: 1, msg: 'Update role failed, please try again' })
+    })
 })
 
 
