@@ -1,17 +1,11 @@
 import React, { Component } from 'react'
-import { Form, Input, Tree } from 'antd'
-import PropTypes from 'prop-types'
+import { Tree } from 'antd'
 
 import menuList from '../../config/menuConfig'
 
-const Item = Form.Item
 const { TreeNode } = Tree;
 
 export default class AuthForm extends Component {
-
-    static propTypes = {
-        role: PropTypes.object.isRequired
-    }
 
     constructor (props) {
         super(props)
@@ -34,7 +28,7 @@ export default class AuthForm extends Component {
     }
 
     onCheck = checkedKeys => {
-        console.log('onCheck', checkedKeys);
+        // console.log('onCheck', checkedKeys);
         this.setState({checkedKeys})
       };
 
@@ -55,18 +49,10 @@ export default class AuthForm extends Component {
 
     render() {
 
-        const { role } = this.props
-
         const {checkedKeys} = this.state
 
         return (
             <div>
-                <Form>
-                    <Item label='Role Name'>
-                        <Input value={role.name} />
-                    </Item>
-                </Form>
-
                 <Tree
                     checkable
                     defaultExpandAll={true}

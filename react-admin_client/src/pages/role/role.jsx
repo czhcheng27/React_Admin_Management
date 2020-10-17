@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Card, Button, Table, message } from 'antd'
+import { Card, Button, Table, message, Form, Input } from 'antd'
 import { reqAddRole, reqRoleList, reqUpdateRole } from '../../api'
 import { getDate } from '../../utils/dateUtlis'
 import Modal from 'antd/lib/modal/Modal'
@@ -8,7 +8,11 @@ import AuthForm from './auth-form'
 import '../../utils/memoryUtlis'
 import memoryUtlis from '../../utils/memoryUtlis'
 
+const Item = Form.Item
+
 export default class Role extends Component {
+
+    formRef2 = React.createRef();
 
     state = {
         roles: [],//list for all roles
@@ -88,22 +92,44 @@ export default class Role extends Component {
             })
     }
 
+    //show update modal
+    showUpdate = () => {
+        this.setState({ isShowAuth: 1 })
+        setTimeout(() => {
+            this.formRef2.current.setFieldsValue({ roleName: this.state.role.name });
+        }, 100)
+    }
+
     //update role
-    updateRole = async () => {
+    updateRole = () => {
+
         this.setState({ isShowAuth: 0 })
         let menus = this.auth.current.getMenus()
+        this.menus = menus
         // console.log('menus', menus);
-        const { role } = this.state
-        role.menus = menus
-        role.auth_name = memoryUtlis.user.username
-        console.log('role', role);
-        const result = await reqUpdateRole(role)
-        if (result.code === 0) {
-            message.success('Update Role Success')
-            this.getRoleList()
-        } else {
-            message.error("Update Role Failed")
-        }
+
+        this.formRef2.current.validateFields()
+            .then(async(values) => {
+                // console.log('values', values);
+
+                const { role } = this.state
+                role.menus = this.menus
+                // console.log('role.menus', role.menus);
+                role.name = values.roleName
+                role.auth_name = memoryUtlis.user.username
+                // console.log('role', role);
+                const result = await reqUpdateRole(role)
+                if (result.code === 0) {
+                    message.success('Update Role Success')
+                    this.getRoleList()
+                } else {
+                    message.error("Update Role Failed")
+                }
+
+            })
+            .catch(err => {
+                message.error("Update Role Failed")
+            })
     }
 
     handleCancel = () => {
@@ -126,7 +152,7 @@ export default class Role extends Component {
         const title = (
             <span>
                 <Button type='primary' onClick={() => this.setState({ isShowAdd: 1 })}>Create Role</Button>&nbsp;&nbsp;
-                <Button type='primary' disabled={!role._id} onClick={() => this.setState({ isShowAuth: 1 })}>Set up Authorization</Button>
+                <Button type='primary' disabled={!role._id} onClick={() => this.showUpdate()}>Set up Authorization</Button>
             </span>
         )
 
@@ -161,10 +187,13 @@ export default class Role extends Component {
                     onOk={this.updateRole}
                     onCancel={() => {
                         this.setState({ isShowAuth: 0 })
-                        // this.formRef.current.resetFields()
                     }}
-                // onCancel={this.handleCancel}
                 >
+                    <Form ref={this.formRef2}>
+                        <Item label='Role Name' name='roleName'>
+                            <Input />
+                        </Item>
+                    </Form>
                     <AuthForm role={role} ref={this.auth} />
                 </Modal>
             </div>
