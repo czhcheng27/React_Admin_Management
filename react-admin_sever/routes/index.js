@@ -189,6 +189,60 @@ router.post('/manage/role/update', (req, res) => {
     })
 })
 
+//add user
+router.post('/manage/user/add', (req, res) => {
+  const { username, password } = req.body
+  UserModel.findOne({ username })
+    .then(user => {
+      if (user) {
+        res.send({ code: 1, msg: 'This user has already been registered' })
+      } else {
+        return UserModel.create({ ...req.body, password: md5(password) })
+      }
+    })
+    .then(user => {
+      res.send({ code: 0, data: user })
+    })
+    .catch(err => {
+      console.log('Regist Error', err);
+      res.send({ code: 1, msg: 'Add new user failed, please try again' })
+    })
+})
+
+//get user list
+router.get('/manage/user/list', (req, res) => {
+  UserModel.find()
+    .then(user => {
+      res.send({ code: 0, data: user })
+    })
+    .catch(err => {
+      res.send({ code: 1, msg: 'Get user list failed, please try again' })
+    })
+})
+
+//update user
+router.post('/manage/user/update', (req, res) => {
+  const user = req.body
+  UserModel.findByIdAndUpdate({_id: user._id}, user)
+  .then(oldUser => {
+    const data = Object.assign(oldUser, user)
+    res.send({code:0, data})
+  })
+  .catch(err => {
+    console.log('err', err);
+    res.send({code: 1, msg: 'Update user failed, please try again'})
+  })
+})
+
+//delete user
+router.post('/manage/user/delete', (req, res) => {
+  const {userId} = req.body
+  UserModel.deleteOne({_id: userId})
+  .then((doc) => {
+    res.send({code:0})
+  })
+})
+
 
 function pageFilter(arr, pageNum, pageSize) {
   pageNum = pageNum * 1

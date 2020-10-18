@@ -45,3 +45,9 @@ export const reqAddRole = (roleName) => ajax('/manage/role/add', {roleName}, 'PO
 
 //update role
 export const reqUpdateRole = (role) => ajax('/manage/role/update', role, 'POST')
+
+//get user list
+export const reqUserList = () => ajax('/manage/user/list')
+
+//delete user
+export const reqDeleteUser = (userId) => ajax('/manage/user/delete', {userId}, 'POST')
