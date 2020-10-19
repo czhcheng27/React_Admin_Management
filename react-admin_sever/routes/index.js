@@ -211,7 +211,7 @@ router.post('/manage/user/add', (req, res) => {
 
 //get user list
 router.get('/manage/user/list', (req, res) => {
-  UserModel.find()
+  UserModel.find({username: {'$ne': 'admin'}})
     .then(user => {
       res.send({ code: 0, data: user })
     })
