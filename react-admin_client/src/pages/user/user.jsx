@@ -3,7 +3,7 @@ import { Card, Table, Button, Modal, message } from 'antd'
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 
 import { getDate } from '../../utils/dateUtlis'
-import { reqUserList, reqDeleteUser, reqRoleList, reqAddUser } from '../../api'
+import { reqUserList, reqDeleteUser, reqRoleList, reqAddOrUpdateUser } from '../../api'
 import LinkButton from '../../components/link-button'
 import UserForm from './user-form';
 
@@ -44,12 +44,23 @@ export default class User extends Component {
                 title: 'Action',
                 render: (user) => (
                     <span>
-                        <LinkButton>Edit</LinkButton>
+                        <LinkButton onClick={() => this.showUpdate(user)}>Edit</LinkButton>
                         <LinkButton onClick={() => this.deleteUser(user)}>Delete</LinkButton>
                     </span>
                 )
             },
         ]
+    }
+
+    //show update
+    showUpdate = (user) => {
+        this.user = user
+        this.setState({ isShow: true })
+    }
+
+    showAdd = () => {
+        this.user = null
+        this.setState({ isShow: true })
     }
 
     //delete user
@@ -80,13 +91,16 @@ export default class User extends Component {
         this.formRef.current.validateFields()
             .then(() => this.formRef.current.resetFields())
 
+        if (this.user) {
+            user._id = this.user._id
+        }
 
         //send api request
-        const result = await reqAddUser(user)
+        const result = await reqAddOrUpdateUser(user)
 
         //update show list
         if (result.code === 0) {
-            message.success('Add user success')
+            message.success(`${this.user ? 'Update' : 'Add'} user success`)
             this.getUsers()
         } else {
             message.error('Add user failed')
@@ -133,9 +147,11 @@ export default class User extends Component {
 
         const { users, isShow, roles } = this.state
 
+        const user = this.user || {}
+
         const title = (
             <span>
-                <Button type='primary' onClick={() => this.setState({ isShow: true })}>Create User</Button>
+                <Button type='primary' onClick={() => this.showAdd()}>Create User</Button>
             </span>
         )
 
@@ -149,12 +165,17 @@ export default class User extends Component {
                 />
 
                 <Modal
-                    title='Add User'
+                    title={user._id ? 'Edit User' : 'Add User'}
                     visible={isShow}
                     onOk={this.addUpdateUser}
                     onCancel={() => this.setState({ isShow: false })}
+                    destroyOnClose={true}
                 >
-                    <UserForm roles={roles} setForm={(formRef) => this.formRef = formRef} />
+                    <UserForm
+                        roles={roles}
+                        setForm={(formRef) => this.formRef = formRef}
+                        user={user}
+                    />
                 </Modal>
             </Card>
         )

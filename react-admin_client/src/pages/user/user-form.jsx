@@ -11,7 +11,8 @@ export default class UserForm extends Component {
 
     static propTypes = {
         setForm: PropTypes.func.isRequired,
-        roles: PropTypes.array.isRequired
+        roles: PropTypes.array.isRequired,
+        user: PropTypes.object
     }
 
     componentWillMount() {
@@ -20,7 +21,7 @@ export default class UserForm extends Component {
 
     render() {
 
-        const { roles } = this.props
+        const { roles, user } = this.props
 
         const formItemLayout = {
             labelCol: { span: 6 },
@@ -45,6 +46,7 @@ export default class UserForm extends Component {
                 <Item
                     label='Username'
                     name='username'
+                    initialValue={user.username}
                     rules={[
                         { required: true, message: 'Username must be given' },
                         { min: 4, message: 'Username should be at least 4 digits' },
@@ -55,7 +57,8 @@ export default class UserForm extends Component {
                     <Input placeholder='Please type in username' />
                 </Item>
 
-                <Item
+                {
+                    user._id? null : <Item
                     label='Password'
                     name='password'
                     rules={[
@@ -67,10 +70,13 @@ export default class UserForm extends Component {
                 >
                     <Input type='password' placeholder='Please type in username' />
                 </Item>
+                }
+                
 
                 <Item
                     label='Phone'
                     name='phone'
+                    initialValue={user.phone}
                     rules={[
                         { len: 10, message: 'Phone number format is incorrect' },
                         {
@@ -85,6 +91,7 @@ export default class UserForm extends Component {
                 <Item
                     label='Email'
                     name='email'
+                    initialValue={user.email}
                 >
                     <Input placeholder='Please type in email' />
                 </Item>
@@ -92,6 +99,7 @@ export default class UserForm extends Component {
                 <Item
                     label='Role'
                     name='role_id'
+                    initialValue={user.role_id}
                     rules={[
                         { required: true, message: 'Role must be selected' }
                     ]}
