@@ -7,6 +7,7 @@ import AddForm from './add-form'
 import AuthForm from './auth-form'
 import '../../utils/memoryUtlis'
 import memoryUtlis from '../../utils/memoryUtlis'
+import storageUtlis from '../../utils/storageUtlis'
 
 const Item = Form.Item
 
@@ -120,6 +121,14 @@ export default class Role extends Component {
                 // console.log('role', role);
                 const result = await reqUpdateRole(role)
                 if (result.code === 0) {
+                   
+                    //if update yourself role, need to force to logout and relogin
+                    if(memoryUtlis.user.role_id = role._id){
+                        memoryUtlis.user = {}
+                        storageUtlis.removeUser()
+                        this.props.history.replace('/login')
+                        message.success('Current user\'s Role has been revised, please log in')
+                    }
                     message.success('Update Role Success')
                     this.getRoleList()
                 } else {

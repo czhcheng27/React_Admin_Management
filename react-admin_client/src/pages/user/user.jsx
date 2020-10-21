@@ -66,15 +66,15 @@ export default class User extends Component {
     //delete user
     deleteUser = (user) => {
         Modal.confirm({
-            title: 'Do you Want to delete ' + `${user.username} ?`,
+            title: `Do you Want to delete ${user.username} ?`,
             icon: <ExclamationCircleOutlined />,
             onOk: async () => {
                 const result = await reqDeleteUser(user._id)
                 if (result.code === 0) {
-                    message.success('Delete ' + `${user.username} success`)
+                    message.success(`Delete ${user.username} success`)
                     this.getUsers()
                 } else {
-                    message.error('Delete ' + `${user.username} failed`)
+                    message.error(`Delete ${user.username} failed`)
                 }
             },
             onCancel() {
